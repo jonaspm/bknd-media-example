@@ -7,64 +7,72 @@ import { secureRandomString } from "bknd/utils";
 const local = registerLocalMediaAdapter();
 
 // the em() function makes it easy to create an initial schema
-const schema = em({
-   todos: entity("todos", {
+const schema = em(
+  {
+    todos: entity("todos", {
       title: text(),
       done: boolean(),
-   }),
-  users: systemEntity("users", {
-    photo: media({
-      max_items: 1
-    })
-  })
-});
+    }),
+    users: systemEntity("users", {
+      photo: media({
+        max_items: 1,
+        required: false,
+        fillable: ["update"],
+      }),
+    }),
+    media: systemEntity("media", {}),
+  },
+  ({ relation }, { users, media }) => {
+    relation(users).polyToOne(media, { mappedBy: "photo" });
+  },
+);
 
 // register your schema to get automatic type completion
 type Database = (typeof schema)["DB"];
 declare module "bknd" {
-   interface DB extends Database {}
+  interface DB extends Database {}
 }
 
 export default {
-   // we can use any libsql config, and if omitted, uses in-memory
-   app: (env) => ({
-      connection: {
-         url: env.DB_URL ?? "file:data.db",
+  // we can use any libsql config, and if omitted, uses in-memory
+  app: (env) => ({
+    connection: {
+      url: env.DB_URL ?? "file:data.db",
+    },
+  }),
+  // an initial config is only applied if the database is empty
+  config: {
+    data: schema.toJSON(),
+    // we're enabling auth ...
+    auth: {
+      enabled: true,
+      jwt: {
+        issuer: "bknd-astro-example",
+        secret: secureRandomString(64),
       },
-   }),
-   // an initial config is only applied if the database is empty
-   config: {
-      data: schema.toJSON(),
-      // we're enabling auth ...
-      auth: {
-         enabled: true,
-         jwt: {
-            issuer: "bknd-astro-example",
-            secret: secureRandomString(64),
-         },
-      },
-      // ... and media
-      media: {
-         enabled: true,
-         adapter: local({
-            path: "./public/uploads",
-         }),
-      },
-   },
-   options: {
-      // the seed option is only executed if the database was empty
-      seed: async (ctx) => {
-         // create some entries
-         await ctx.em.mutator("todos").insertMany([
-            { title: "Learn bknd", done: true },
-            { title: "Build something cool", done: false },
-         ]);
+    },
+    // ... and media
+    media: {
+      enabled: true,
+      adapter: local({
+        path: "./public/uploads",
+      }),
+    },
+  },
+  options: {
+    // the seed option is only executed if the database was empty
+    seed: async (ctx) => {
+      // create some entries
+      await ctx.em.mutator("todos").insertMany([
+        { title: "Learn bknd", done: true },
+        { title: "Build something cool", done: false },
+      ]);
 
-         // and create a user
-         await ctx.app.module.auth.createUser({
-            email: "test@bknd.io",
-            password: "12345678",
-         });
-      },
-   },
+      // and create a user
+      await ctx.app.module.auth.createUser({
+        email: "test@bknd.io",
+        password: "12345678",
+      });
+    },
+  },
 } as const satisfies AstroBkndConfig;
