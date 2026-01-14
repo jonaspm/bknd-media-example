@@ -119,7 +119,10 @@ export const prerender = false;
            "users",
            meData.user.id,
             "photo",
-            file
+            file,
+            {
+              overwrite: true
+            }
          );
 
          // Check if response contains an error
