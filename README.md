@@ -15,11 +15,32 @@ Inside of your Astro project, you'll see the following folders and files:
 │       └── api/
 │       │   └── [...api].astro
 │       ├── index.astro
-│       └── ssr.astro
+│       ├── ssr.astro
+│       └── profile.astro
 └── package.json
 ```
 
 To update `bknd` config, check `src/api/[...api].astro` and `src/admin/[...admin].astro`.
+
+## Profile Page
+
+The `profile.astro` page demonstrates user authentication and photo upload functionality.
+
+### Fetching User with Relations
+
+When you need to fetch user data with related fields (like `photo`), use `api.data.readOne` with the `with` option instead of `api.getUser()`:
+
+```typescript
+// Get basic user for authentication check
+const basicUser = api.getUser();
+
+// Fetch user with photo relation
+const { data: user } = await api.data.readOne("users", basicUser.id, {
+   with: { photo: {} }
+});
+```
+
+The `api.getUser()` method only returns basic user data without relations. To include related entities, use `api.data.readOne` on the `users` entity with the `with` option.
 
 ## Commands
 
