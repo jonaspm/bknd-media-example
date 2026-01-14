@@ -1,6 +1,6 @@
 import type { AstroBkndConfig } from "bknd/adapter/astro";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
-import { boolean, em, entity, text } from "bknd";
+import { boolean, em, entity, media, systemEntity, text } from "bknd";
 import { secureRandomString } from "bknd/utils";
 
 // since we're running in node, we can register the local media adapter
@@ -12,6 +12,11 @@ const schema = em({
       title: text(),
       done: boolean(),
    }),
+  users: systemEntity("users", {
+    photo: media({
+      max_items: 1
+    })
+  })
 });
 
 // register your schema to get automatic type completion
