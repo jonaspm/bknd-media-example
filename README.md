@@ -36,7 +36,7 @@ const basicUser = api.getUser();
 
 // Fetch user with photo relation
 const { data: user } = await api.data.readOne("users", basicUser.id, {
-   with: { photo: {} }
+   with: ['photo']
 });
 ```
 
